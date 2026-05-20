@@ -1000,7 +1000,7 @@
             "titleWithType": "Download {type} from URL",
             "url": "Civitai URL",
             "civitaiUrl": "Civitai URL:",
-            "placeholder": "https://civitai.com/models/...",
+            "placeholder": "Paste one or more Civitai model URLs, one per line...",
             "locationPreview": "Download Location Preview",
             "useDefaultPath": "Use Default Path",
             "useDefaultPathTooltip": "When enabled, files are automatically organized using configured path templates",

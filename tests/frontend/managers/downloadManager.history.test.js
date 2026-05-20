@@ -146,4 +146,61 @@ describe('DownloadManager version history badges', () => {
     expect(manager.modelVersionId).toBe('777');
     expect(manager.source).toBeNull();
   });
+
+  it('extracts multiple Civitai URLs from pasted text', () => {
+    const manager = new DownloadManager();
+
+    expect(manager.extractDownloadUrls(`
+      Owen
+      https://civitai.red/models/1/first?modelVersionId=11
+      https://civitai.com/models/2/second?modelVersionId=22,
+    `)).toEqual([
+      'https://civitai.red/models/1/first?modelVersionId=11',
+      'https://civitai.com/models/2/second?modelVersionId=22',
+    ]);
+  });
+
+  it('prepares unique batch downloads from model URLs', async () => {
+    const manager = new DownloadManager();
+    manager.apiClient = {
+      fetchCivitaiVersions: vi.fn(async (modelId) => ([
+        {
+          id: Number(modelId) * 10,
+          name: `Version ${modelId}`,
+          existsLocally: modelId === '2',
+        },
+        {
+          id: Number(modelId) * 10 + 1,
+          name: `Other ${modelId}`,
+          existsLocally: false,
+        },
+      ])),
+    };
+
+    await manager.prepareBatchDownloads([
+      'https://civitai.red/models/1/first?modelVersionId=10',
+      'https://civitai.red/models/1/first?modelVersionId=10',
+      'https://civitai.com/models/2/second',
+    ]);
+
+    expect(manager.isBatchMode).toBe(true);
+    expect(manager.batchItems).toEqual([
+      {
+        url: 'https://civitai.red/models/1/first?modelVersionId=10',
+        modelId: '1',
+        versionId: 10,
+        versionName: 'Version 1',
+        source: null,
+        existsLocally: false,
+      },
+      {
+        url: 'https://civitai.com/models/2/second',
+        modelId: '2',
+        versionId: 20,
+        versionName: 'Version 2',
+        source: null,
+        existsLocally: true,
+      },
+    ]);
+  });
 });
